@@ -23,7 +23,6 @@ function initDownloader() {
 
     let apiUrl = `https://thuvienso.hcmute.edu.vn/doc/loadpdf2?id=${id}&t1=${t1}&hash=${hash}`;
 
-    // CSS Giao diện Uiverse
     let style = document.createElement('style');
     style.innerHTML = `
         .hcmute-download-btn { width: 50px; height: 50px; border: 2px solid rgb(214, 214, 214); border-radius: 15px; background-color: rgb(255, 255, 255); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: fixed; top: 25px; right: 25px; z-index: 9999999; transition-duration: 0.3s; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.11); }
@@ -36,7 +35,6 @@ function initDownloader() {
     `;
     document.head.appendChild(style);
 
-    // Gắn Nút
     let downloadBtn = document.createElement("button");
     downloadBtn.className = "hcmute-download-btn";
     downloadBtn.title = "Tải xuống nhanh"; 
@@ -48,16 +46,13 @@ function initDownloader() {
     `;
     document.body.appendChild(downloadBtn);
 
-    // Xử lý tải siêu tốc
     downloadBtn.onclick = async function() {
         try {
-            // UI Đang tải
             downloadBtn.style.backgroundColor = "#FF9800";
             downloadBtn.style.pointerEvents = "none";
             downloadBtn.querySelector('.svgIcon').style.fill = "white";
             downloadBtn.querySelector('.icon2').style.borderColor = "white";
 
-            // 1. Lấy dữ liệu
             let response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: { "APP_KEY": hash }
@@ -66,20 +61,17 @@ function initDownloader() {
             if (!response.ok) throw new Error("Máy chủ từ chối");
             let rawText = await response.text();
 
-            // 2. Lọc tạp chất siêu nhanh
             let base64Text = rawText.replace(/['"]+/g, '').trim();
             if (base64Text.includes("base64,")) {
                 base64Text = base64Text.split("base64,")[1];
             }
             base64Text = base64Text.replace(/[^A-Za-z0-9+\/=_]/g, "");
 
-            // 3. Giải mã bằng Native Engine của trình duyệt (Bỏ vòng lặp JS)
             let pdfResponse = await fetch("data:application/pdf;base64," + base64Text);
             let blob = await pdfResponse.blob();
 
             if (blob.size < 1000) throw new Error("File quá nhỏ");
 
-            // 4. Lưu file với tên là ID tài liệu
             let downloadUrl = window.URL.createObjectURL(blob);
             let a = document.createElement("a");
             a.href = downloadUrl;
@@ -87,23 +79,21 @@ function initDownloader() {
             document.body.appendChild(a);
             a.click();
             
-            // Dọn dẹp
             a.remove();
             window.URL.revokeObjectURL(downloadUrl);
 
-            // UI Thành công
             downloadBtn.style.backgroundColor = "#4CAF50";
 
         } catch (error) {
             console.error("Lỗi:", error);
-            downloadBtn.style.backgroundColor = "#F44336"; // UI Lỗi
+            downloadBtn.style.backgroundColor = "#F44336";
         } finally {
             setTimeout(() => {
                 downloadBtn.style.pointerEvents = "auto";
                 downloadBtn.style.backgroundColor = ""; 
                 downloadBtn.querySelector('.svgIcon').style.fill = ""; 
                 downloadBtn.querySelector('.icon2').style.borderColor = ""; 
-            }, 2000); // Giảm thời gian chờ reset nút xuống 2s
+            }, 2000);
         }
     };
 }
