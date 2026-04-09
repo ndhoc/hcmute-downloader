@@ -67,8 +67,20 @@ function initDownloader() {
             }
             base64Text = base64Text.replace(/[^A-Za-z0-9+\/=_]/g, "");
 
-            let pdfResponse = await fetch("data:application/pdf;base64," + base64Text);
-            let blob = await pdfResponse.blob();
+            while (base64Text.length % 4 !== 0) {
+                base64Text += '=';
+            }
+
+            const byteCharacters = atob(base64Text);
+            
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+
+            let blob = new Blob([byteArray], { type: 'application/pdf' });
+            
 
             if (blob.size < 1000) throw new Error("File quá nhỏ");
 
