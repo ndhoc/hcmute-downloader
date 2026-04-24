@@ -1,10 +1,10 @@
 # HCMUTE Downloader
 
-Chrome extension to download videos from thuvienso HCMUTE.
+Tải tài liệu từ thư viện số HCMUTE.
 
 ## Install
-1. Download from Releases
+1. Download từ Releases
 2. Extract zip
-3. Open chrome://extensions
+3. Mở chrome://extensions
 4. Enable Developer Mode
 5. Load unpacked
