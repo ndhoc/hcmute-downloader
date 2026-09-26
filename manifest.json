@@ -4,14 +4,10 @@
   "version": "1.0.3",
   "description": "Tải file PDF gốc từ thư viện số HCMUTE",
   "permissions": [
-    "activeTab",
     "downloads"
   ],
   "host_permissions": [
-    "*://*.hcmute.edu.vn/*",
-    "*://thuvienso-hcmute.dlib.vn/*",
-    "https://apiuni.dlib.vn/*",
-    "https://cdn.dlib.vn/*"
+    "https://apiuni.dlib.vn/*"
   ],
   "icons": {
     "16": "icon.png",
@@ -28,12 +24,11 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.hcmute.edu.vn/*",
-        "*://thuvienso-hcmute.dlib.vn/*"
+        "*://thuvienso.hcmute.edu.vn/tai-lieu/*.html*",
+        "*://thuvienso-hcmute.dlib.vn/tai-lieu/*.html*"
       ],
       "js": ["content.js"],
-      "run_at": "document_idle",
-      "all_frames": false
+      "run_at": "document_idle"
     }
   ]
 }

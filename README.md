@@ -1,16 +1,15 @@
 # HCMUTE Downloader
 
-Tải tài liệu PDF từ thư viện số HCMUTE.
+Tải tài liệu PDF từ thư viện số HCMUTE qua API DLib.
 
 Extension hỗ trợ trang tài liệu trên:
 
 - `https://thuvienso.hcmute.edu.vn/`
 - `https://thuvienso-hcmute.dlib.vn/`
 
-## Install
+## Cài đặt
 
-1. Download từ Releases
-2. Extract zip
-3. Mở `chrome://extensions`
-4. Enable Developer Mode
-5. Load unpacked
+1. Tải và giải nén extension.
+2. Mở `chrome://extensions`.
+3. Bật **Developer mode**.
+4. Chọn **Load unpacked** và mở thư mục extension.
