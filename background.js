@@ -17,7 +17,7 @@ function getDocumentInfo(pageUrl) {
     try {
         slug = decodeURIComponent(encodedSlug);
     } catch {
-        // Giữ nguyên slug nếu URL chứa chuỗi phần trăm không hợp lệ.
+        
     }
 
     const safeName = slug
