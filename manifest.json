@@ -1,13 +1,17 @@
 {
   "manifest_version": 3,
   "name": "HCMUTE Downloader",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Tải file PDF gốc từ thư viện số HCMUTE",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "downloads"
   ],
   "host_permissions": [
-    "*://*.hcmute.edu.vn/*"
+    "*://*.hcmute.edu.vn/*",
+    "*://thuvienso-hcmute.dlib.vn/*",
+    "https://apiuni.dlib.vn/*",
+    "https://cdn.dlib.vn/*"
   ],
   "icons": {
     "16": "icon.png",
@@ -18,12 +22,18 @@
     "default_icon": "icon.png",
     "default_title": "HCMUTE Downloader"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["*://*.hcmute.edu.vn/*"],
+      "matches": [
+        "*://*.hcmute.edu.vn/*",
+        "*://thuvienso-hcmute.dlib.vn/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle",
-      "all_frames": true
+      "all_frames": false
     }
   ]
 }
