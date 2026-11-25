@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "HCMUTE Downloader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Tải file PDF gốc từ thư viện số HCMUTE",
   "permissions": [
     "downloads"
   ],
   "host_permissions": [
-    "https://apiuni.dlib.vn/*"
+    "https://cdn.dlib.vn/*"
   ],
   "icons": {
     "16": "icon.png",

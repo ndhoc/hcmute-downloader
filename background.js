@@ -3,7 +3,6 @@ const PAGE_HOSTS = new Set([
     "thuvienso-hcmute.dlib.vn"
 ]);
 
-const API_BASE_URL = "https://apiuni.dlib.vn/api/v1/congcong/get-detail-document/";
 const PDF_HOST = "cdn.dlib.vn";
 
 function getDocumentInfo(pageUrl) {
@@ -17,7 +16,7 @@ function getDocumentInfo(pageUrl) {
     try {
         slug = decodeURIComponent(encodedSlug);
     } catch {
-        
+        // Giữ nguyên slug nếu URL chứa chuỗi phần trăm không hợp lệ.
     }
 
     const safeName = slug
@@ -25,37 +24,33 @@ function getDocumentInfo(pageUrl) {
         .replace(/[. ]+$/g, "")
         .slice(0, 180) || "hcmute-document";
 
-    return {
-        apiUrl: API_BASE_URL + url.pathname,
-        fileName: `${safeName}.pdf`
-    };
+    return { fileName: `${safeName}.pdf` };
 }
 
-async function downloadPdf(pageUrl) {
-    const documentInfo = getDocumentInfo(pageUrl);
-    const response = await fetch(documentInfo.apiUrl, {
-        headers: { Accept: "application/json" }
-    });
-
-    if (!response.ok) {
-        throw new Error(`API trả về lỗi HTTP ${response.status}`);
+function parsePdfUrl(pdfUrl) {
+    let url;
+    try {
+        url = new URL(pdfUrl);
+    } catch {
+        throw new Error("Đường dẫn PDF không hợp lệ");
     }
 
-    const result = await response.json();
-    if (Number(result.status) !== 200 || typeof result.pdfFLink !== "string") {
-        throw new Error("API không trả về đường dẫn PDF");
+    if (url.protocol !== "https:"
+        || url.hostname !== PDF_HOST
+        || !url.pathname.toLowerCase().endsWith(".pdf")) {
+        throw new Error("Đường dẫn PDF không hợp lệ");
     }
 
-    const pdfUrl = new URL(result.pdfFLink);
-    if (pdfUrl.protocol !== "https:"
-        || pdfUrl.hostname !== PDF_HOST
-        || !pdfUrl.pathname.toLowerCase().endsWith(".pdf")) {
-        throw new Error("Đường dẫn PDF từ API không hợp lệ");
-    }
+    return url;
+}
+
+async function downloadPdf(pageUrl, pdfUrl) {
+    const { fileName } = getDocumentInfo(pageUrl);
+    const target = parsePdfUrl(pdfUrl);
 
     const downloadId = await chrome.downloads.download({
-        url: pdfUrl.href,
-        filename: documentInfo.fileName,
+        url: target.href,
+        filename: fileName,
         conflictAction: "uniquify",
         saveAs: false
     });
@@ -64,13 +59,18 @@ async function downloadPdf(pageUrl) {
         throw new Error("Trình duyệt không thể bắt đầu tải file");
     }
 
-    return { downloadId, fileName: documentInfo.fileName };
+    return { downloadId, fileName };
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.type !== "downloadPdf") return false;
 
-    downloadPdf(sender.url)
+    if (typeof message.pdfUrl !== "string") {
+        sendResponse({ ok: false, error: "Không tìm thấy đường dẫn PDF" });
+        return false;
+    }
+
+    downloadPdf(sender.url, message.pdfUrl)
         .then((data) => sendResponse({ ok: true, ...data }))
         .catch((error) => {
             console.error("HCMUTE Downloader:", error);
