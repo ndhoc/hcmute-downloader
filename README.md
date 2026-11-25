@@ -1,6 +1,6 @@
 # HCMUTE Downloader
 
-Tải tài liệu PDF từ thư viện số HCMUTE qua API DLib.
+Tải tài liệu PDF từ thư viện số HCMUTE bằng liên kết PDF công khai trên trang tài liệu (không cần đăng nhập).
 
 Extension hỗ trợ trang tài liệu trên:
 

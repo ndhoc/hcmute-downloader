@@ -3,6 +3,7 @@
 
     const BUTTON_ID = "hcmute-custom-download-btn";
     const STYLE_ID = "hcmute-download-style";
+    const PAYLOAD_ID = "__NUXT_DATA__";
 
     function ensureStyles() {
         if (document.getElementById(STYLE_ID)) return;
@@ -63,9 +64,69 @@
         button.setAttribute("aria-label", title);
     }
 
-    function requestDownload() {
+    function normalizePath(value) {
+        try {
+            return decodeURIComponent(value);
+        } catch {
+            return value;
+        }
+    }
+
+    function readPayload(text) {
+        try {
+            return JSON.parse(text);
+        } catch {
+            return null;
+        }
+    }
+
+    function findPdfUrl(payload, path) {
+        if (!Array.isArray(payload)) return null;
+
+        const value = (entry) => (typeof entry === "number" ? payload[entry] : entry);
+        const target = normalizePath(path);
+
+        for (const item of payload) {
+            if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+            if (!Object.prototype.hasOwnProperty.call(item, "pdf_file_path")) continue;
+
+            const pdfUrl = value(item.pdf_file_path);
+            if (typeof pdfUrl !== "string") continue;
+
+            const isCurrentPage = Object.keys(item).some((key) =>
+                /link$/.test(key) && typeof value(item[key]) === "string"
+                && normalizePath(value(item[key])) === target
+            );
+
+            if (isCurrentPage) return pdfUrl;
+        }
+
+        return null;
+    }
+
+    async function resolvePdfUrl() {
+        const script = document.getElementById(PAYLOAD_ID);
+        if (script) {
+            const pdfUrl = findPdfUrl(readPayload(script.textContent), location.pathname);
+            if (pdfUrl) return pdfUrl;
+        }
+
+        const response = await fetch(location.href, { credentials: "include" });
+        if (!response.ok) throw new Error("Không đọc được trang tài liệu");
+
+        const html = await response.text();
+        const match = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+        if (!match) throw new Error("Không tìm thấy dữ liệu tài liệu");
+
+        const pdfUrl = findPdfUrl(readPayload(match[1]), location.pathname);
+        if (!pdfUrl) throw new Error("Tài liệu này không cho phép tải PDF");
+
+        return pdfUrl;
+    }
+
+    function requestDownload(pdfUrl) {
         return new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({ type: "downloadPdf" }, (response) => {
+            chrome.runtime.sendMessage({ type: "downloadPdf", pdfUrl }, (response) => {
                 if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
                 } else if (!response?.ok) {
@@ -96,7 +157,8 @@
             setState(button, "loading", "Đang chuẩn bị file PDF...");
 
             try {
-                await requestDownload();
+                const pdfUrl = await resolvePdfUrl();
+                await requestDownload(pdfUrl);
                 setState(button, "success", "Đã bắt đầu tải file PDF");
             } catch (error) {
                 console.error("HCMUTE Downloader:", error);
